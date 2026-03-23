@@ -15,7 +15,7 @@ export enum PeriodicityType {
 
 export enum TransactionType {
   EXPENSE = 'Despesa',
-  INCOME = 'Remuneração',
+  INCOME = 'Receita',
   INVESTMENT = 'Investimento'
 }
 
@@ -36,45 +36,51 @@ export interface User {
   password?: string;
   name: string;
   role: UserRole;
+  isTemporaryPassword?: boolean;
 }
 
 export enum ExpenseCategory {
-  CONDOMINIO = 'Condomínio',
-  TELEFONE = 'Telefone',
-  JARDINEIRO = 'Jardineiro',
-  VIAGEM = 'Viagem',
-  COMBUSTIVEL = 'Combustível',
-  IMPOSTO = 'Imposto',
-  MULTA = 'Multa',
-  TAXA = 'Taxa',
-  CARTAO = 'Cartão',
-  RESTAURANTE = 'Restaurante',
-  LANCHONETE = 'Lanchonete',
-  HAPPY_HOUR = 'Happy Hour',
-  PRESENTE = 'Presente',
-  DIARISTA = 'Diarista',
-  ENERGIA = 'Energia Elétrica',
   AGUA = 'Água',
-  GAS = 'Gás',
-  ESCOLA = 'Escola',
+  CARTAO = 'Cartão',
+  COMBUSTIVEL = 'Combustível',
+  CONDOMINIO = 'Condomínio',
   CURSO = 'Curso',
-  PSICOLOGA = 'Psicóloga',
-  PLANO_SAUDE = 'Plano Saúde',
+  DIARISTA = 'Diarista',
+  EMPRESTIMO = 'EMPRÉSTIMO',
+  ENERGIA = 'Energia Elétrica',
+  ESCOLA = 'Escola',
+  GAS = 'Gás',
+  HAPPY_HOUR = 'Happy Hour',
+  IMPOSTO = 'Imposto',
+  IR_RETIDO = 'IR RETIDO',
+  JARDINEIRO = 'Jardineiro',
+  LANCHONETE = 'Lanchonete',
   MANUTENCAO_VEICULO = 'Manutenção Veículo',
-  OUTROS = 'Outros'
+  MULTA = 'Multa',
+  PENSAO_ALIMENTICIA = 'PENSÃO ALIMENTÍCIA',
+  PLANO_SAUDE = 'Plano Saúde',
+  PRESENTE = 'Presente',
+  PSICOLOGA = 'Psicóloga',
+  RESTAURANTE = 'Restaurante',
+  SEGURIDADE_SOCIAL = 'SEGURIDADE SOCIAL',
+  SINDICATO = 'SINDICATO',
+  TAXA = 'Taxa',
+  TELEFONE = 'Telefone',
+  VIAGEM = 'Viagem',
+  OUTRAS = 'Outras'
 }
 
 export enum IncomeCategory {
-  SUBSIDIO = 'Subsídio',
-  VOLUNTARIO = 'Voluntário',
-  AUXILIO_ALIMENTACAO = 'Auxílio Alimentação',
-  AUXILIO_UNIFORME = 'Auxílio Uniforme',
-  DIARIAS = 'Diárias',
-  AJUDA_CUSTO = 'Ajuda de Custo',
-  ALUGUEL = 'Aluguel',
-  FERIAS = 'Férias',
-  GRATIF_NATALINA = 'Gratif. Natalina',
-  OUTROS_RENDIMENTOS = 'Outros Rendimentos'
+  SUBSIDIO = 'SUBSÍDIO',
+  VOLUNTARIO = 'VOLUNTÁRIO',
+  AUXILIO_ALIMENTACAO = 'AUX-ALIMENTAÇÃO',
+  AUXILIO_UNIFORME = 'AUX-UNIFORME',
+  DIARIAS = 'DIÁRIAS',
+  AJUDA_CUSTO = 'AJUDA DE CUSTO',
+  ALUGUEL = 'ALUGUEL',
+  FERIAS = 'FÉRIAS',
+  GRATIF_NATALINA = 'GRATIF. NATALINA',
+  OUTROS_RENDIMENTOS = 'OUTROS RENDIMENTOS'
 }
 
 export enum InvestmentCategory {
@@ -154,5 +160,5 @@ export interface IncomeSource {
   receiptDate?: string;
 }
 
-export type ViewType = 'dashboard' | 'expenses' | 'income' | 'investments' | 'credit_card' | 'admin';
+export type ViewType = 'dashboard' | 'expenses' | 'income' | 'investments' | 'credit_card' | 'admin' | 'account';
 export type ExpenseSubTab = 'all' | 'annuais' | 'mensais' | 'semanais' | 'eventuais';

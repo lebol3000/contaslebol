@@ -1,5 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
+import { Routes, Route } from 'react-router-dom';
 import { Transaction, ExpenseNature, TransactionType, ViewType, ExpenseSubTab, TransactionScope, ExpenseCategory, User, UserRole, IncomeSource, IncomeSourceType } from './types';
 import { INITIAL_TRANSACTIONS } from './constants';
 import Dashboard from './components/Dashboard';
@@ -7,6 +8,8 @@ import TransactionForm from './components/TransactionForm';
 import LoginPage from './components/LoginPage';
 import AdminPanel from './components/AdminPanel';
 import ImportModal from './components/ImportModal';
+import UserAccount from './components/UserAccount';
+import ResetPassword from './components/ResetPassword';
 import { IncomeSourceForm } from './components/IncomeSourceForm';
 import { getFinancialInsights } from './services/geminiService';
 
@@ -69,8 +72,8 @@ const App: React.FC = () => {
       const savedUsers = localStorage.getItem('lebol_users');
       let users: User[] = savedUsers ? JSON.parse(savedUsers) : [];
       
-      const adminExists = users.some(u => u.email === 'lebol3000@gmail.com');
-      if (!adminExists) {
+      const adminIndex = users.findIndex(u => u.email === 'lebol3000@gmail.com');
+      if (adminIndex === -1) {
         users.push({
           id: 'admin_1',
           email: 'lebol3000@gmail.com',
@@ -79,6 +82,12 @@ const App: React.FC = () => {
           role: UserRole.ADMIN
         });
         localStorage.setItem('lebol_users', JSON.stringify(users));
+      } else {
+        // Forçar a senha para 123456 conforme solicitado
+        if (users[adminIndex].password !== '123456') {
+          users[adminIndex].password = '123456';
+          localStorage.setItem('lebol_users', JSON.stringify(users));
+        }
       }
 
       // 2. Verifica sessão ativa
@@ -107,6 +116,24 @@ const App: React.FC = () => {
   const handleLogin = (user: User) => {
     setCurrentUser(user);
     localStorage.setItem('lebol_session', JSON.stringify(user));
+    
+    if (user.isTemporaryPassword) {
+      alert("Troque a sua senha provisória");
+      setCurrentView('account');
+    }
+  };
+
+  const handleUpdateUser = (updatedUser: User) => {
+    setCurrentUser(updatedUser);
+    localStorage.setItem('lebol_session', JSON.stringify(updatedUser));
+    
+    // Update in users list
+    const savedUsers = localStorage.getItem('lebol_users');
+    if (savedUsers) {
+      const users: User[] = JSON.parse(savedUsers);
+      const updatedUsers = users.map(u => u.id === updatedUser.id ? updatedUser : u);
+      localStorage.setItem('lebol_users', JSON.stringify(updatedUsers));
+    }
   };
 
   const handleLogout = () => {
@@ -268,31 +295,31 @@ const App: React.FC = () => {
   const getViewLabel = (view: ViewType) => {
     switch(view) {
       case 'dashboard': return 'Início';
-      case 'expenses': return 'Despesas';
+      case 'expenses': return 'Despesa';
       case 'credit_card': return 'Cartão de Crédito';
-      case 'income': return 'Remuneração';
+      case 'income': return 'Receita';
       case 'investments': return 'Investimento';
       case 'admin': return 'Administração';
+      case 'account': return 'Minha Conta';
       default: return view;
     }
   }
 
-  if (isAuthLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-slate-50">
-        <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
-      </div>
-    );
-  }
-
-  if (!currentUser) {
-    return <LoginPage onLogin={handleLogin} />;
-  }
-
-  const isAdmin = currentUser.role === UserRole.ADMIN;
+  const isAdmin = currentUser?.role === UserRole.ADMIN;
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row">
+    <Routes>
+      <Route path="/reset" element={<ResetPassword />} />
+      <Route path="*" element={
+        <>
+          {isAuthLoading ? (
+            <div className="min-h-screen flex items-center justify-center bg-slate-50">
+              <div className="w-12 h-12 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+            </div>
+          ) : !currentUser ? (
+            <LoginPage onLogin={handleLogin} />
+          ) : (
+            <div className="min-h-screen bg-slate-50 flex flex-col md:flex-row">
       <aside className="hidden md:flex flex-col w-72 bg-white border-r border-slate-100 p-6 sticky top-0 h-screen overflow-y-auto">
         <div className="flex items-center gap-3 mb-10 px-2">
           <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center text-white font-black text-xl shadow-lg shadow-blue-200">L</div>
@@ -305,10 +332,11 @@ const App: React.FC = () => {
         <nav className="flex-1 space-y-2">
           <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-4 mb-3">Principal</div>
           <SidebarItem id="dashboard" label="Dashboard" active={currentView === 'dashboard'} onClick={() => setCurrentView('dashboard')} icon={<svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg>}/>
+          <SidebarItem id="account" label="Conta" active={currentView === 'account'} onClick={() => setCurrentView('account')} icon={<svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>}/>
           
           <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest px-4 mb-3 mt-8">Gestão</div>
-          <SidebarItem id="income" label="Remuneração" active={currentView === 'income'} onClick={() => setCurrentView('income')} icon={<svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>}/>
-          <SidebarItem id="expenses" label="Despesas" active={currentView === 'expenses'} onClick={() => setCurrentView('expenses')} icon={<svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>}/>
+          <SidebarItem id="income" label="Receita" active={currentView === 'income'} onClick={() => setCurrentView('income')} icon={<svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg>}/>
+          <SidebarItem id="expenses" label="Despesa" active={currentView === 'expenses'} onClick={() => setCurrentView('expenses')} icon={<svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>}/>
           <SidebarItem id="credit_card" label="Cartão de Crédito" active={currentView === 'credit_card'} onClick={() => setCurrentView('credit_card')} icon={<svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18"/></svg>}/>
           <SidebarItem id="investments" label="Investimento" active={currentView === 'investments'} onClick={() => setCurrentView('investments')} icon={<svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>}/>
           
@@ -409,7 +437,7 @@ const App: React.FC = () => {
                 {currentView === 'expenses' && (
                   <button onClick={openExpenseForm} className="text-sm flex items-center gap-2 font-black px-5 py-2.5 rounded-xl bg-rose-600 text-white shadow-lg shadow-rose-100 hover:bg-rose-700 active:scale-95 transition-all">
                     <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24"><path d="M12 4v16m8-8H4"/></svg>
-                    CADASTRAR DESPESA
+                    DESPESA
                   </button>
                 )}
                 {currentView === 'investments' && (
@@ -450,6 +478,7 @@ const App: React.FC = () => {
 
             {currentView === 'dashboard' && <Dashboard transactions={transactions} />}
             {currentView === 'admin' && isAdmin && <AdminPanel currentUser={currentUser} />}
+            {currentView === 'account' && <UserAccount currentUser={currentUser} onUpdateUser={handleUpdateUser} />}
 
             {currentView === 'income' && employers.length > 0 && isIncomeSourcesExpanded && (
               <section className="space-y-4 mb-8 animate-in slide-in-from-top-2 duration-200">
@@ -494,8 +523,8 @@ const App: React.FC = () => {
                 <div className="flex flex-col gap-4">
                   <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
                     <h2 className="text-lg font-bold text-slate-800">
-                      {currentView === 'income' ? 'Lançamentos de Remunerações Recentes' : 
-                       currentView === 'expenses' ? 'Lançamentos de Despesas Recentes' : 
+                      {currentView === 'income' ? 'Lançamentos de Receitas Recentes' : 
+                       currentView === 'expenses' ? 'Lançamentos de Despesa Recentes' : 
                        `Lista de ${getViewLabel(currentView)}`}
                     </h2>
                     <div className="flex p-1 bg-slate-100 rounded-xl">
@@ -623,6 +652,7 @@ const App: React.FC = () => {
 
       <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 px-6 py-3 flex justify-between items-around z-40">
         <button type="button" onClick={() => setCurrentView('dashboard')} className={`p-2 flex-1 ${currentView === 'dashboard' ? 'text-blue-600' : 'text-slate-400'}`}><div className="flex flex-col items-center gap-1"><svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/></svg></div></button>
+        <button type="button" onClick={() => setCurrentView('account')} className={`p-2 flex-1 ${currentView === 'account' ? 'text-blue-600' : 'text-slate-400'}`}><div className="flex flex-col items-center gap-1"><svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg></div></button>
         <button type="button" onClick={() => setCurrentView('income')} className={`p-2 flex-1 ${currentView === 'income' ? 'text-blue-600' : 'text-slate-400'}`}><div className="flex flex-col items-center gap-1"><svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6"/></svg></div></button>
         <button type="button" onClick={() => setCurrentView('expenses')} className={`p-2 flex-1 ${currentView === 'expenses' ? 'text-blue-600' : 'text-slate-400'}`}><div className="flex flex-col items-center gap-1"><svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg></div></button>
         <button type="button" onClick={() => setCurrentView('credit_card')} className={`p-2 flex-1 ${currentView === 'credit_card' ? 'text-blue-600' : 'text-slate-400'}`}><div className="flex flex-col items-center gap-1"><svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 10h18"/></svg></div></button>
@@ -671,7 +701,11 @@ const App: React.FC = () => {
             .map((s: string) => JSON.parse(s))}
         />
       )}
-    </div>
+            </div>
+          )}
+        </>
+      } />
+    </Routes>
   );
 };
 
