@@ -122,7 +122,7 @@ const ImportModal: React.FC<ImportModalProps> = ({ onImport, onClose, availableC
         amount: Math.abs(tx.amount),
         vencimento: vencimento, // A data de vencimento da fatura informada pelo usuário
         pagamento: vencimento, // Assume que se está na fatura, será pago no vencimento
-        category: ExpenseCategory.OUTROS,
+        category: ExpenseCategory.OUTRAS,
         parcela: '1',
         totalParcelas: '1',
         nature: ExpenseNature.EVENTUAL,

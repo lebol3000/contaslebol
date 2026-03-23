@@ -10,6 +10,39 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [isForgotPasswordOpen, setIsForgotPasswordOpen] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState('');
+  const [forgotMessage, setForgotMessage] = useState('');
+
+  const generateTempPassword = () => {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    let result = '';
+    for (let i = 0; i < 6; i++) {
+      result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+  };
+
+  const handleForgotPassword = (e: React.FormEvent) => {
+    e.preventDefault();
+    const savedUsers = localStorage.getItem('lebol_users');
+    const users: User[] = savedUsers ? JSON.parse(savedUsers) : [];
+    const userIndex = users.findIndex(u => u.email === forgotEmail);
+
+    if (userIndex !== -1) {
+      const tempPass = generateTempPassword();
+      users[userIndex].password = tempPass;
+      users[userIndex].isTemporaryPassword = true;
+      localStorage.setItem('lebol_users', JSON.stringify(users));
+      
+      // Simulate sending email
+      console.log(`E-mail enviado para ${forgotEmail}: A sua senha provisória é: ${tempPass}`);
+      setForgotMessage('Se o seu e-mail estiver cadastrado, você receberá um link com uma senha provisória.');
+    } else {
+      // Still show the same message for security
+      setForgotMessage('Se o seu e-mail estiver cadastrado, você receberá um link com uma senha provisória.');
+    }
+  };
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
@@ -88,7 +121,17 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
             </div>
 
             <div className="space-y-2">
-              <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Sua Senha</label>
+              <div className="flex justify-between items-center">
+                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Sua Senha</label>
+                <button 
+                  type="button"
+                  onClick={() => setIsForgotPasswordOpen(true)}
+                  className="text-[9px] font-black text-blue-400 uppercase tracking-widest hover:text-blue-300 transition-colors flex items-center gap-1"
+                >
+                  <svg width="12" height="12" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                  Esqueci a senha
+                </button>
+              </div>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-slate-500">
                   <svg width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
@@ -135,6 +178,68 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin }) => {
           Lebol Financial Suite &copy; {new Date().getFullYear()}
         </p>
       </div>
+
+      {/* Modal Esqueci a Senha */}
+      {isForgotPasswordOpen && (
+        <div className="fixed inset-0 bg-slate-900/80 backdrop-blur-md flex items-center justify-center p-4 z-[100] animate-in fade-in duration-300">
+          <div className="bg-[#1e293b] border border-white/10 rounded-[2.5rem] w-full max-w-md p-8 shadow-2xl">
+            <div className="flex flex-col items-center mb-8">
+              <div className="w-16 h-16 bg-blue-600/20 rounded-2xl flex items-center justify-center text-blue-400 mb-4">
+                <svg width="32" height="32" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/></svg>
+              </div>
+              <h3 className="text-xl font-black text-white uppercase tracking-tight">Recuperar Senha</h3>
+              <p className="text-slate-400 text-[10px] font-bold uppercase tracking-widest mt-2 text-center">Informe seu e-mail cadastrado</p>
+            </div>
+
+            {forgotMessage ? (
+              <div className="space-y-6">
+                <div className="bg-blue-500/10 border border-blue-500/20 text-blue-300 text-[11px] font-bold p-4 rounded-2xl text-center leading-relaxed">
+                  {forgotMessage}
+                </div>
+                <button 
+                  onClick={() => {
+                    setIsForgotPasswordOpen(false);
+                    setForgotMessage('');
+                    setForgotEmail('');
+                  }}
+                  className="w-full py-4 bg-white/5 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-white/10 transition-all"
+                >
+                  VOLTAR AO LOGIN
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={handleForgotPassword} className="space-y-6">
+                <div className="space-y-2">
+                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Seu E-mail</label>
+                  <input
+                    type="email"
+                    required
+                    className="w-full px-5 py-4 rounded-2xl bg-white/[0.03] border border-white/10 focus:border-blue-500 focus:bg-white/[0.06] focus:ring-4 focus:ring-blue-500/10 outline-none transition-all font-medium text-white placeholder:text-slate-600"
+                    placeholder="nome@exemplo.com"
+                    value={forgotEmail}
+                    onChange={(e) => setForgotEmail(e.target.value)}
+                  />
+                </div>
+                <div className="flex gap-3">
+                  <button 
+                    type="button"
+                    onClick={() => setIsForgotPasswordOpen(false)}
+                    className="flex-1 py-4 bg-white/5 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-white/10 transition-all"
+                  >
+                    CANCELAR
+                  </button>
+                  <button 
+                    type="submit"
+                    className="flex-1 py-4 bg-blue-600 text-white rounded-2xl font-black text-xs uppercase tracking-[0.2em] hover:bg-blue-500 transition-all shadow-lg shadow-blue-900/20"
+                  >
+                    ENVIAR
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
 
       <style dangerouslySetInnerHTML={{ __html: `
         @keyframes pulse-slow {

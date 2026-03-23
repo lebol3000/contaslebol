@@ -52,8 +52,8 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions }) => {
   })).sort((a, b) => b.value - a.value);
 
   const summaryData = [
-    { name: 'Receitas', valor: totalIncome, color: '#10b981' },
-    { name: 'Despesas', valor: totalExpense, color: '#ef4444' },
+    { name: 'Receita', valor: totalIncome, color: '#10b981' },
+    { name: 'Despesa', valor: totalExpense, color: '#ef4444' },
     { name: 'Invest.', valor: totalInvestment, color: '#3b82f6' }
   ];
 
@@ -67,11 +67,11 @@ const Dashboard: React.FC<DashboardProps> = ({ transactions }) => {
           </h3>
         </div>
         <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
-          <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Receitas</p>
+          <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Receita</p>
           <h3 className="text-2xl font-bold text-emerald-600">R$ {totalIncome.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</h3>
         </div>
         <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
-          <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Despesas</p>
+          <p className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1">Despesa</p>
           <h3 className="text-2xl font-bold text-rose-600">R$ {totalExpense.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</h3>
         </div>
         <div className="bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
